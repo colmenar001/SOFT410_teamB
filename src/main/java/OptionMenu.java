@@ -9,6 +9,10 @@ public class OptionMenu extends Account {
 
     HashMap<Integer, Integer> data = new HashMap<>(); // Stores customer number as key, PIN as value
 
+    // Composition: the menu holds one account object of each type
+    private final BankAccount checking = new CheckingAccount();
+    private final BankAccount saving = new SavingAccount();
+
     // Handles login process
     public void getLogin() {
         int x = 1;
@@ -84,15 +88,15 @@ public class OptionMenu extends Account {
         switch (selection) {
             case 1:
                 // Display balance
-                System.out.println("Checking Account Balance: " + moneyFormat.format(getCheckingBalance()));
+                System.out.println("Checking Account Balance: " + moneyFormat.format(checking.getBalance()));
                 getAccountType(); // Return to main menu
                 break;
             case 2:
-                getCheckingWithdrawInput(); // Perform withdrawal
+                getWithdrawInput(checking); // Perform withdrawal
                 getAccountType();
                 break;
             case 3:
-                getCheckingDepositInput(); // Perform deposit
+                getDepositInput(checking); // Perform deposit
                 getAccountType();
                 break;
             case 4:
@@ -120,15 +124,15 @@ public class OptionMenu extends Account {
         switch (selection) {
             case 1:
                 // Display balance
-                System.out.println("Saving Account Balance: " + moneyFormat.format(getSavingBalance()));
+                System.out.println("Saving Account Balance: " + moneyFormat.format(saving.getBalance()));
                 getAccountType(); // Return to main menu
                 break;
             case 2:
-                getSavingWithdrawInput(); // Perform withdrawal
+                getWithdrawInput(saving); // Perform withdrawal
                 getAccountType();
                 break;
             case 3:
-                getSavingDepositInput(); // Perform deposit
+                getDepositInput(saving); // Perform deposit
                 getAccountType();
                 break;
             case 4:
@@ -138,6 +142,40 @@ public class OptionMenu extends Account {
                 System.out.println("\nInvalid Choice\n");
                 getChecking(); // Re-prompt (note: this may be intended to redirect to saving, consider reviewing)
                 break;
+        }
+    }
+
+    // Shared withdraw prompt for any account type
+    public void getWithdrawInput(BankAccount account) {
+        String name = account.getName();
+        System.out.println(name + " Account Balance: " + moneyFormat.format(account.getBalance()));
+        System.out.print("Amount to withdraw from " + name + " Account: ");
+        double amount = menuInput.nextDouble();
+
+        switch (account.withdraw(amount)) {
+            case INVALID_AMOUNT:
+                System.out.println("Invalid amount. Please enter a positive number.");
+                break;
+            case INSUFFICIENT_FUNDS:
+                System.out.println("Not enough funds.");
+                break;
+            case OK:
+                System.out.println("New " + name + " Account Balance: " + moneyFormat.format(account.getBalance()));
+                break;
+        }
+    }
+
+    // Shared deposit prompt for any account type
+    public void getDepositInput(BankAccount account) {
+        String name = account.getName();
+        System.out.println(name + " Account Balance: " + moneyFormat.format(account.getBalance()));
+        System.out.print("Amount to deposit to " + name + " Account: ");
+        double amount = menuInput.nextDouble();
+
+        if (account.deposit(amount) == BankAccount.Result.INVALID_AMOUNT) {
+            System.out.println("Invalid amount. Please enter a positive number.");
+        } else {
+            System.out.println("New " + name + " Account Balance: " + moneyFormat.format(account.getBalance()));
         }
     }
 }
